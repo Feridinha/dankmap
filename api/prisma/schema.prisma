@@ -1,0 +1,29 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+model Point {
+    id        Int      @id @default(autoincrement())
+    latitude  Float
+    longitude Float
+    routeId   Int
+    route     Route    @relation(fields: [routeId], references: [id])
+    createdAt DateTime @default(now())
+}
+
+model Route {
+    id     Int     @id @default(autoincrement())
+    points Point[]
+    path Json @default("[]")
+    isPathUpdated Boolean @default(false)
+    createdAt DateTime @default(now())
+    color String
+}
