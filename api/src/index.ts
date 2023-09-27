@@ -5,14 +5,18 @@ import { validateSchema } from "./middlewares/zod"
 import database from "./services/database"
 import { createRouteSchema, putPointInRouteSchema } from "./validations/route"
 import { z } from "zod"
-import { RouteIdRequest, routeId } from "./middlewares/routeId"
+import { RouteIdRequest, parseRoutePath, routeId } from "./middlewares/routeId"
 import { handlePointsToRoadPath } from "./services/maps"
 
 const fastify = Fastify({})
 
 fastify.get("/route", async () => {
     const routes = await database.route.findMany({ include: { points: true } })
-    return { success: true, data: routes }
+    console.log(routes)
+    return {
+        success: true,
+        data: routes.map(parseRoutePath),
+    }
 })
 
 fastify.put(
@@ -41,12 +45,13 @@ fastify.put(
             data: { latitude, longitude, routeId: routeTarget.id },
         })
 
-        await database.route.update({
+        const newRoute = await database.route.update({
             where: { id: routeTarget.id },
             data: { isPathUpdated: false },
+            include: { points: true },
         })
 
-        return { success: true, data: point }
+        return { success: true, data: parseRoutePath(newRoute) }
     }
 )
 
@@ -60,6 +65,24 @@ fastify.get(
     }
 )
 
+fastify.delete(
+    "/route/:routeId/point",
+    { preHandler: [routeId] },
+    async (req: RouteIdRequest) => {
+        const routeTarget = req.routeTarget!
+
+        await database.point.deleteMany({ where: { routeId: routeTarget.id } })
+
+        const newRoute = await database.route.update({
+            where: { id: routeTarget.id },
+            data: { isPathUpdated: false, path: "[]" },
+            include: { points: true },
+        })
+
+        return { success: true, data: parseRoutePath(newRoute) }
+    }
+)
+
 fastify.get(
     "/route/:routeId/path",
     { preHandler: [routeId] },
@@ -68,20 +91,24 @@ fastify.get(
         if (routeTarget.isPathUpdated)
             return {
                 success: true,
-                data: JSON.parse(routeTarget.path!.toString()),
+                data: routeTarget.path,
                 isCache: true,
             }
         const path = await handlePointsToRoadPath(routeTarget.points)
 
         if (!path) return { success: false, message: "Erro ao atualizar path" }
 
+        const stringPath = JSON.stringify(path)
+        console.log("véi foi")
+
         await database.route.update({
             where: { id: routeTarget.id },
-            data: { isPathUpdated: true, path: JSON.stringify(path) },
+            data: { isPathUpdated: true, path: stringPath },
+            include: { points: true },
         })
 
         return { success: true, data: path, isCache: false }
     }
 )
 
-fastify.listen({ port: 3333 })
+fastify.listen({ port: 3333, host: "0.0.0.0" })

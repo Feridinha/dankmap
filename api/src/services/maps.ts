@@ -27,7 +27,7 @@ export const handlePointsToRoadPath = async (points: Point[]) => {
     )
 
     const response = await client
-        .snapToRoads({ params: { key: env.GOOGLE_MAPS_SECRET, path } })
+        .snapToRoads({ params: { key: env.GOOGLE_MAPS_SECRET, path, interpolate: true } })
         .catch((err: any) => console.log(JSON.stringify(err)))
         
     if (!response) return false

@@ -3,26 +3,26 @@ import { Button, StyleSheet, View } from "react-native"
 interface Props {
     handleLocation: () => void
     handleGoTo: () => void
-    handleAddMarker: () => void
-    handleResetMarkers: () => void
+    handleAddPoint: () => void
+    handleResetPoints: () => void
 }
 
 const BottomBar = ({
     handleLocation,
     handleGoTo,
-    handleAddMarker,
-    handleResetMarkers,
+    handleAddPoint,
+    handleResetPoints,
 }: Props) => {
     return (
         <View style={styles.container}>
             <Button onPress={handleLocation} title="tipo" />
             <Button onPress={handleGoTo} title="Mais recente" color={"grey"} />
             <Button
-                onPress={handleAddMarker}
+                onPress={handleAddPoint}
                 title="Adicionar"
                 color={"green"}
             />
-            <Button onPress={handleResetMarkers} title="Limpar" color={"red"} />
+            <Button onPress={handleResetPoints} title="Limpar" color={"red"} />
         </View>
     )
 }

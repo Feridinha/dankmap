@@ -3,6 +3,9 @@
     "compilerOptions": {
         "strict": true,
         "strictNullChecks": true,
-        "jsx": "react-native"
+        "jsx": "react-native",
+        "paths": {
+            "@api-types": ["../api/src/responses"]
+        }
     }
 }

@@ -9,11 +9,18 @@ const idSchema = z.object({
 
 const selector = { points: true } satisfies Prisma.RouteSelect
 
-export type RouteWithPoints = Prisma.RouteGetPayload<{ include: typeof selector }>
+type RouteWithPoints = Prisma.RouteGetPayload<{ include: typeof selector }>
 
 export interface RouteIdRequest extends FastifyRequest {
     routeTarget?: RouteWithPoints
 }
+
+
+export const parseRoutePath = <T>(target: T): T => ({
+    ...target,
+    // @ts-ignore
+    path: typeof target.path === "string" ? JSON.parse(target.path) : []
+})
 
 export const routeId = (
     req: RouteIdRequest,
@@ -30,7 +37,7 @@ export const routeId = (
     database.route
         .findUnique({
             where: { id: params.data.routeId },
-            include: selector
+            include: selector,
         })
         .then((routeTarget) => {
             if (!routeTarget)
@@ -38,7 +45,7 @@ export const routeId = (
                     success: false,
                     message: "Rota não encontrada",
                 })
-            req.routeTarget = routeTarget
+            req.routeTarget = parseRoutePath(routeTarget)
             next()
         })
 }
