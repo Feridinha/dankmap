@@ -25,11 +25,12 @@ const fechRoute = async (routeId: number): Promise<ApiResponse<ApiRoute>> => {
     return response.data as ApiResponse<ApiRoute>
 }
 
-const deleteRoutePoints = async (routeId: number): Promise<ApiResponse<ApiRoute>> => {
+const deleteRoutePoints = async (
+    routeId: number
+): Promise<ApiResponse<ApiRoute>> => {
     const response = await http.delete(`/route/${routeId}/point`)
     return response.data as ApiResponse<ApiRoute>
 }
-
 
 const putPointInRoute = async (
     routeId: number,
@@ -46,10 +47,22 @@ const putPointInRoute = async (
     return data
 }
 
+const getRoutePath = async (
+    routeId: number
+): Promise<ApiResponse<ApiRoute>> => {
+    const response: any = await http
+        .get(`/route/${routeId}/path`)
+        .catch(handleError)
+
+    const data = response.data as ApiResponse<ApiRoute>
+    return data
+}
+
 const api = {
     deleteRoutePoints,
     putPointInRoute,
     fechRoute,
+    getRoutePath
 }
 
 export default api

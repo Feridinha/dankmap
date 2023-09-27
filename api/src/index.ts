@@ -101,13 +101,13 @@ fastify.get(
         const stringPath = JSON.stringify(path)
         console.log("véi foi")
 
-        await database.route.update({
+        const newRoute = await database.route.update({
             where: { id: routeTarget.id },
             data: { isPathUpdated: true, path: stringPath },
             include: { points: true },
         })
 
-        return { success: true, data: path, isCache: false }
+        return { success: true, data: parseRoutePath(newRoute), isCache: false }
     }
 )
 

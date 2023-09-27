@@ -1,11 +1,11 @@
 import { ApiRoute } from "@api-types"
-import BottomBar from "../components/BottomBar"
-import Map from "../components/Map"
 import * as Location from "expo-location"
 import { StatusBar } from "expo-status-bar"
 import { useEffect, useRef, useState } from "react"
-import { StyleSheet, Text, View } from "react-native"
+import { LayoutChangeEvent, StyleSheet, View, ScrollView } from "react-native"
 import MapView, { LatLng } from "react-native-maps"
+import BottomBar from "../components/BottomBar"
+import Map from "../components/Map"
 import api from "../services/api"
 
 type Nullable<T> = T | null
@@ -17,10 +17,9 @@ function MainPage() {
         useState<Nullable<LatLng>>(null)
 
     const mapRef = useRef<MapView>(null)
-
-    const [markers, setMarkers] = useState<LatLng[]>([])
-    const [index, setIndex] = useState<number>(0)
     const [currentRoute, setCurrentRoute] = useState<ApiRoute | null>(null)
+    const [maxHeight, setMaxHeight] = useState<number>(20)
+    const [pageHeight, setPageHeight] = useState<number>(0)
 
     const handleCurrentRoute = async () => {
         const response = await api.fechRoute(8)
@@ -34,22 +33,6 @@ function MainPage() {
 
         let location = await Location.getCurrentPositionAsync({ accuracy: 6 })
         setLocation(location)
-    }
-
-    const handleGoTo = () => {
-        if(!currentRoute) return
-        if (currentRoute.points.length === 0 || !mapRef.current) return
-        if (currentRoute.points.length > index + 1) {
-            setIndex((i) => i + 1)
-        } else {
-            setIndex(0)
-        }
-
-        mapRef.current.animateToRegion({
-            ...currentRoute.points[index],
-            latitudeDelta: 0.02,
-            longitudeDelta: 0.02,
-        })
     }
 
     const handleStart = () => {
@@ -77,26 +60,42 @@ function MainPage() {
         setCurrentRoute(response.data)
     }
 
+    const getHeight = (e: LayoutChangeEvent) => e.nativeEvent.layout.height
+    const handleMapHeight = (e: LayoutChangeEvent) => {
+        const height = getHeight(e)
+        setMaxHeight(pageHeight - height)
+    }
+
+    const handleGenerateRote = async () => {
+        const response = await api.getRoutePath(8)
+        if (!response.success) return alert(response.message)
+        setCurrentRoute(response.data)
+    }
+
     return (
-        <View style={styles.container}>
-            <Map
-                mapRef={mapRef}
-                location={location}
-                lookingLocation={lookingLocation}
-                onRegionChange={handleRegionChange}
-                currentRoute={currentRoute}
-            />
-            <Text>
-                {(location?.coords &&
-                    Object.values(location.coords).join(", ")) ||
-                    "Nenhuma localização"}{" "}
-                {(currentRoute && `Rota #${currentRoute.id}`) || "Nenhuma Rota"}
-            </Text>
+        <View
+            style={styles.container}
+            onLayout={(e) => setPageHeight(getHeight(e))}
+        >
+            <ScrollView
+                contentContainerStyle={{ ...styles.mapWrapper, maxHeight }}
+            >
+                <Map
+                    mapRef={mapRef}
+                    location={location}
+                    lookingLocation={lookingLocation}
+                    onRegionChange={handleRegionChange}
+                    currentRoute={currentRoute}
+                    maxHeight={maxHeight}
+                />
+            </ScrollView>
+            
             <BottomBar
-                handleGoTo={handleGoTo}
                 handleLocation={handleStart}
                 handleAddPoint={handleAddPoint}
                 handleResetPoints={handleResetPoints}
+                handleGenerateRote={handleGenerateRote}
+                onLayout={handleMapHeight}
             />
             <StatusBar style="auto" />
         </View>
@@ -105,11 +104,16 @@ function MainPage() {
 
 const styles = StyleSheet.create({
     container: {
-        flex: 1,
-        backgroundColor: "#fff",
-        alignItems: "center",
-        justifyContent: "space-evenly",
-        paddingBottom: 5,
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "space-around",
+        backgroundColor: "blue",
+        height: "100%",
+    },
+    mapWrapper: {
+        display: "flex",
+        overflow: "hidden",
+        backgroundColor: "green",
     },
 })
 

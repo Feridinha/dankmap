@@ -1,7 +1,7 @@
 import { ApiRoute } from "@api-types"
 import * as Location from "expo-location"
 import { RefObject } from "react"
-import { Dimensions, StyleSheet } from "react-native"
+import { Dimensions, StyleSheet, View } from "react-native"
 import MapView, { LatLng, Marker, Polyline } from "react-native-maps"
 
 interface Props {
@@ -10,6 +10,7 @@ interface Props {
     onRegionChange: (d: LatLng) => void
     lookingLocation: LatLng | null
     currentRoute: ApiRoute | null
+    maxHeight: number
 }
 
 const initialLocation = {
@@ -25,16 +26,18 @@ const Map = ({
     onRegionChange,
     lookingLocation,
     currentRoute,
+    maxHeight
 }: Props) => {
     currentRoute?.path
     return (
         <MapView
             ref={mapRef}
-            style={styles.map}
+            style={{maxHeight, height: maxHeight}}
             zoomEnabled
             initialRegion={initialLocation}
             onRegionChange={onRegionChange}
             showsUserLocation={true}
+            loadingEnabled={true}
         >
             {currentRoute &&
                 currentRoute.points.map((points, index) => (
@@ -70,13 +73,5 @@ const Map = ({
     )
 }
 
-const styles = StyleSheet.create({
-    map: {
-        height: Dimensions.get("window").height,
-        flex: 1,
-        backgroundColor: "red",
-        width: Dimensions.get("window").width,
-    },
-})
 
 export default Map
