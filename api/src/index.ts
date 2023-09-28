@@ -91,7 +91,7 @@ fastify.get(
         if (routeTarget.isPathUpdated)
             return {
                 success: true,
-                data: routeTarget.path,
+                data: routeTarget,
                 isCache: true,
             }
         const path = await handlePointsToRoadPath(routeTarget.points)
