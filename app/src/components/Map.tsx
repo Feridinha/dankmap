@@ -1,41 +1,40 @@
 import { ApiRoute } from "@api-types"
 import * as Location from "expo-location"
-import { RefObject } from "react"
-import { Dimensions, StyleSheet, View } from "react-native"
+import { RefObject, useState, memo, useEffect, useCallback } from "react"
 import MapView, { LatLng, Marker, Polyline } from "react-native-maps"
 
 interface Props {
-    location: Location.LocationObject | null
+    // location: Location.LocationObject | null
     mapRef: RefObject<MapView>
     onRegionChange: (d: LatLng) => void
-    lookingLocation: LatLng | null
     currentRoute: ApiRoute | null
     maxHeight: number
 }
 
 const initialLocation = {
-    latitude: 2.81547,
-    longitude: -60.686887,
+    latitude: 2.820186,
+    longitude: -60.67198,
     latitudeDelta: 0.0005,
     longitudeDelta: 0.0005,
 }
 
-const Map = ({
-    location,
-    mapRef,
-    onRegionChange,
-    lookingLocation,
-    currentRoute,
-    maxHeight
-}: Props) => {
-    currentRoute?.path
+let updateTimeout: any = null
+
+const Map = ({ mapRef, onRegionChange, currentRoute, maxHeight }: Props) => {
+    console.log("map")
+
+    const handleChange = (e: LatLng) => {
+        clearTimeout(updateTimeout)
+        updateTimeout = setTimeout(() => onRegionChange(e), 300)
+    }
+
     return (
         <MapView
             ref={mapRef}
-            style={{maxHeight, height: maxHeight}}
+            style={{ maxHeight, height: maxHeight }}
             zoomEnabled
             initialRegion={initialLocation}
-            onRegionChange={onRegionChange}
+            onRegionChange={handleChange}
             showsUserLocation={true}
             loadingEnabled={true}
         >
@@ -48,23 +47,14 @@ const Map = ({
                         description="Description"
                         onPress={() => alert("bolsonara")}
                         pinColor="green"
-                        style={{ width: 26, height: 28 }}
+                        style={{ width: 13, height: 14 }}
                     />
                 ))}
-
-            {lookingLocation && (
-                <Marker
-                    coordinate={lookingLocation}
-                    title="Posição atual"
-                    onPress={() => alert("bolsonara")}
-                    icon={{ uri: "https://f.feridinha.com/Ck9W8.png" }}
-                />
-            )}
 
             {currentRoute && (
                 <Polyline
                     coordinates={currentRoute.path.map((path) => path.location)}
-                    strokeColor={"#000"}
+                    strokeColor={"green"}
                     strokeWidth={5}
                     // lineDashPattern={[-1]}
                 />
@@ -73,5 +63,4 @@ const Map = ({
     )
 }
 
-
-export default Map
+export default memo(Map)

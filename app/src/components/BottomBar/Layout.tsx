@@ -1,59 +1,54 @@
-import { ApiRoute } from "@api-types"
-import { LocationObject } from "expo-location"
-import { LayoutChangeEvent, StyleSheet, View, Text } from "react-native"
+import { LayoutChangeEvent, StyleSheet, View } from "react-native"
 import Button from "./Button"
+import { memo } from "react"
 
 interface Props {
-    handleLocation: () => void
-    // handleGoTo: () => void
+    handleRoutesPage: () => void
     handleAddPoint: () => void
     handleGenerateRote: () => void
     handleResetPoints: () => void
+    // closeSubpage: () => void
     onLayout: (e: LayoutChangeEvent) => void
-    // currentRoute: ApiRoute | null
-    // location: LocationObject | null
 }
 
-const BottomBarLayout = ({
-    handleLocation,
-    handleAddPoint,
-    handleResetPoints,
-    handleGenerateRote,
-    onLayout,
-}: Props) => {
-    return (
-        <View style={styles.columnContainer} onLayout={onLayout}>
-            {/* <Text>
-                {(location?.coords &&
-                    Object.values(location.coords).join(", ")) ||
-                    "Nenhuma localização"}{" "}
-                {(currentRoute && `Rota #${currentRoute.id}`) || "Nenhuma Rota"}
-            </Text> */}
-            <View style={styles.rowContainer}>
-                <Button
-                    onPress={handleLocation}
-                    text="Atualizar"
-                    icon="update"
-                />
-                <Button
-                    onPress={handleGenerateRote}
-                    text="Gerar rota"
-                    communityIcon={"routes"}
-                />
-                <Button
-                    onPress={handleAddPoint}
-                    text="Adicionar"
-                    icon="add"
-                />
-                <Button
-                    onPress={handleResetPoints}
-                    text="Apagar"
-                    icon="delete"
-                />
+const BottomBarLayout = memo(
+    ({
+        handleRoutesPage,
+        handleAddPoint,
+        handleResetPoints,
+        handleGenerateRote,
+        onLayout,
+    }: Props) => {
+        console.log("re render")
+
+        return (
+            <View style={styles.columnContainer} onLayout={onLayout}>
+                <View style={styles.rowContainer}>
+                    <Button
+                        onPress={handleRoutesPage}
+                        text="Rotas"
+                        communityIcon="routes"
+                    />
+                    <Button
+                        onPress={handleGenerateRote}
+                        text="Processar"
+                        icon={"account-tree"}
+                    />
+                    <Button
+                        onPress={handleAddPoint}
+                        text="Adicionar ponto"
+                        icon="add"
+                    />
+                    <Button
+                        onPress={handleResetPoints}
+                        text="Apagar"
+                        icon="delete"
+                    />
+                </View>
             </View>
-        </View>
-    )
-}
+        )
+    }
+)
 
 const styles = StyleSheet.create({
     columnContainer: {
@@ -63,12 +58,14 @@ const styles = StyleSheet.create({
         backgroundColor: "#222831",
         width: "100%",
         paddingVertical: 5,
+        paddingHorizontal: 2.5,
+        zIndex: 3,
     },
     rowContainer: {
         display: "flex",
         flexDirection: "row",
         justifyContent: "space-between",
-        gap: 1
+        gap: 1,
     },
 })
 

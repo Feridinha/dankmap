@@ -25,6 +25,11 @@ const fechRoute = async (routeId: number): Promise<ApiResponse<ApiRoute>> => {
     return response.data as ApiResponse<ApiRoute>
 }
 
+const fechRoutes = async (): Promise<ApiResponse<ApiRoute[]>> => {
+    const response = await http.get(`/route`)
+    return response.data as ApiResponse<ApiRoute[]>
+}
+
 const deleteRoutePoints = async (
     routeId: number
 ): Promise<ApiResponse<ApiRoute>> => {
@@ -62,7 +67,8 @@ const api = {
     deleteRoutePoints,
     putPointInRoute,
     fechRoute,
-    getRoutePath
+    getRoutePath,
+    fechRoutes
 }
 
 export default api

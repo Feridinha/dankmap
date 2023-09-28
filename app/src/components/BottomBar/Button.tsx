@@ -43,6 +43,7 @@ const styles = StyleSheet.create({
         padding: 5,
         flexGrow: 1,
         backgroundColor: "#393E46",
+        borderRadius: 5
     },
     container: {
         display: "flex",
