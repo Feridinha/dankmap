@@ -1,14 +1,15 @@
-import { LayoutChangeEvent, StyleSheet, View } from "react-native"
+import { LayoutChangeEvent, StyleSheet, View, Text } from "react-native"
 import Button from "./Button"
 import { memo } from "react"
+import { ApiRoute } from "@api-types"
 
 interface Props {
-    handleRoutesPage: () => void
+    handleRoutesPage: (target: string) => void
     handleAddPoint: () => void
     handleGenerateRote: () => void
     handleResetPoints: () => void
-    // closeSubpage: () => void
     onLayout: (e: LayoutChangeEvent) => void
+    currentRoute: ApiRoute | null
 }
 
 const BottomBarLayout = memo(
@@ -18,14 +19,25 @@ const BottomBarLayout = memo(
         handleResetPoints,
         handleGenerateRote,
         onLayout,
+        currentRoute,
     }: Props) => {
-        console.log("re render")
-
+        console.log("bottombar re render")
         return (
             <View style={styles.columnContainer} onLayout={onLayout}>
+                {!currentRoute && (
+                    <Text style={styles.text}>
+                        {!currentRoute && "Nenhuma rota selecionada"}
+                    </Text>
+                )}
+
+                {currentRoute && (
+                    <Text style={styles.text}>
+                        {`Rota #${currentRoute.id}. ${currentRoute.points.length} pontos. ${currentRoute.path.length} paths`}
+                    </Text>
+                )}
                 <View style={styles.rowContainer}>
                     <Button
-                        onPress={handleRoutesPage}
+                        onPress={() => handleRoutesPage("routes")}
                         text="Rotas"
                         communityIcon="routes"
                     />
@@ -44,6 +56,11 @@ const BottomBarLayout = memo(
                         text="Apagar"
                         icon="delete"
                     />
+                    <Button
+                        onPress={() => handleRoutesPage("config")}
+                        text="Configurações"
+                        icon="settings"
+                    />
                 </View>
             </View>
         )
@@ -60,12 +77,17 @@ const styles = StyleSheet.create({
         paddingVertical: 5,
         paddingHorizontal: 2.5,
         zIndex: 3,
+        gap: 2.5,
     },
     rowContainer: {
         display: "flex",
         flexDirection: "row",
         justifyContent: "space-between",
         gap: 1,
+    },
+    text: {
+        color: "#eee",
+        alignSelf: "flex-start",
     },
 })
 

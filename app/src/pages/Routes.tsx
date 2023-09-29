@@ -19,12 +19,14 @@ const RouteItem = ({
     isHighlighted: boolean
     onPress: (data: ApiRoute) => void
 }) => {
+    const customStyle = isHighlighted ? { backgroundColor: "#1D68FF" } : {}
+
     return (
         <TouchableNativeFeedback onPress={() => onPress(route)}>
-            <View style={styles.routeItemContainer}>
-                <Text style={styles.text}>Rota #{route.id}</Text>
+            <View style={[styles.routeItemContainer, customStyle]}>
+                <Text style={[styles.text, styles.textTitle]}>Rota #{route.id}</Text>
 
-                <Text style={styles.text}>
+                <Text style={[styles.text, { opacity: 0.5 }]}>
                     Criada {dayjs(route.createdAt).from(Date.now())} atrás
                 </Text>
                 {isHighlighted && <View style={styles.highlightedIcon} />}
@@ -110,6 +112,9 @@ const styles = StyleSheet.create({
     text: {
         color: "#eeeeee",
         fontSize: 15,
+    },
+    textTitle: {
+        fontWeight: "600"
     },
     routeItemContainer: {
         position: "relative",

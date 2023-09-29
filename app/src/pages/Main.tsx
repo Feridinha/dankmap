@@ -2,7 +2,14 @@ import { ApiRoute } from "@api-types"
 import * as Location from "expo-location"
 import { StatusBar } from "expo-status-bar"
 import { AnimatePresence } from "moti"
-import { useEffect, useRef, useState, useCallback } from "react"
+import {
+    useEffect,
+    useRef,
+    useState,
+    useCallback,
+    ReactNode,
+    cloneElement,
+} from "react"
 import {
     LayoutChangeEvent,
     ScrollView,
@@ -15,8 +22,11 @@ import BottomBar from "../components/BottomBar"
 import Map from "../components/Map"
 import api from "../services/api"
 import RoutesPage from "./Routes"
+import ConfigPage, { Config } from "./Config"
 
 type Nullable<T> = T | null
+
+let placePointsInverval: any = null
 
 function MainPage() {
     const [location, setLocation] =
@@ -28,7 +38,9 @@ function MainPage() {
     const [currentRoute, setCurrentRoute] = useState<ApiRoute | null>(null)
     const [maxHeight, setMaxHeight] = useState<number>(20)
     const [pageHeight, setPageHeight] = useState<number>(0)
-    const [currentSubPage, setSubpage] = useState<boolean>(false)
+    const [currentSubPage, setSubpage] = useState<JSX.Element | null>(null)
+    const [config, setConfig] = useState<Config>({ auto_place_points: false })
+    const [bottomBarHeight, setBottomHeight] = useState(0)
 
     const handleLocation = async () => {
         const result = await Location.requestForegroundPermissionsAsync()
@@ -36,6 +48,7 @@ function MainPage() {
 
         let location = await Location.getCurrentPositionAsync({ accuracy: 6 })
         setLocation(location)
+        return location
     }
 
     const handleStart = () => {
@@ -44,16 +57,16 @@ function MainPage() {
 
     useEffect(handleStart, [])
 
-    const handleAddPoint = useCallback(async () => {
-        if (!lookingLocation) return alert("Localização não disponível")
+    const handleAddPoint = async (targetLocation: Nullable<LatLng>) => {
+        if (!targetLocation) return alert("Localização não disponível")
         if (!currentRoute) return alert("Nenhuma rota selecionada")
         const response = await api.putPointInRoute(
             currentRoute.id,
-            lookingLocation
+            targetLocation
         )
         if (!response.success) return alert(response.message)
         setCurrentRoute(response.data)
-    }, [setCurrentRoute, lookingLocation, currentRoute])
+    }
 
     const handleRegionChange = useCallback(
         (region: LatLng) => setLookingLocation(region),
@@ -72,6 +85,7 @@ function MainPage() {
     const handleMapHeight = useCallback(
         (e: LayoutChangeEvent) => {
             const height = getHeight(e)
+            setBottomHeight(height)
             setMaxHeight(pageHeight - height)
         },
         [setMaxHeight, pageHeight]
@@ -84,9 +98,45 @@ function MainPage() {
         setCurrentRoute(response.data)
     }, [setCurrentRoute, currentRoute])
 
-    const handleRoutesPage = useCallback(() => {
-        setSubpage((e) => !e)
-    }, [setSubpage])
+    const handleConfig = (newConfig: Config) => {
+        setConfig(newConfig)
+    }
+
+    const handleRoutesPage = (target?: string) => {
+        let newValue: ReactNode = null
+        const props = { currentRoute, setCurrentRoute }
+
+        switch (target) {
+            case "routes":
+                newValue = <RoutesPage key={"routes"} {...props} />
+                break
+            case "config":
+                newValue = (
+                    <ConfigPage
+                        handleConfig={handleConfig}
+                        key={"config"}
+                        {...props}
+                    />
+                )
+                break
+        }
+        if (newValue?.key === currentSubPage?.key) return setSubpage(null)
+        setSubpage(newValue)
+    }
+
+    const handleAutoPlace = useCallback(async () => {
+        const newLocation = await handleLocation()
+        if (!newLocation) return console.log("Sem location")
+        if (!currentRoute) return console.log("Sem route")
+
+        handleAddPoint(newLocation.coords)
+    }, [location, currentRoute])
+
+    useEffect(() => {
+        clearInterval(placePointsInverval)
+        if (!config.auto_place_points) return
+        placePointsInverval = setInterval(handleAutoPlace, 1000)
+    }, [config.auto_place_points, handleAutoPlace])
 
     return (
         <View
@@ -99,6 +149,7 @@ function MainPage() {
                     onRegionChange={handleRegionChange}
                     currentRoute={currentRoute}
                     maxHeight={maxHeight}
+                    config={config}
                 />
                 <View style={styles.mapPointWrapper}>
                     <Image
@@ -111,19 +162,28 @@ function MainPage() {
             </View>
             <BottomBar
                 handleRoutesPage={handleRoutesPage}
-                handleAddPoint={handleAddPoint}
+                handleAddPoint={() => handleAddPoint(lookingLocation)}
                 handleResetPoints={handleResetPoints}
                 handleGenerateRote={handleGenerateRote}
                 onLayout={handleMapHeight}
+                currentRoute={currentRoute}
             />
             <StatusBar style="auto" />
-            <AnimatePresence>
+            <AnimatePresence exitBeforeEnter>
                 {currentSubPage && (
-                    <View style={{ ...styles.subpageContainer, bottom: 60 }}>
-                        <RoutesPage
-                            currentRoute={currentRoute}
-                            setCurrentRoute={setCurrentRoute}
-                        />
+                    <View
+                        style={{
+                            ...styles.subpageContainer,
+                            bottom: bottomBarHeight,
+                        }}
+                        key={currentSubPage.key}
+                    >
+                        {cloneElement(currentSubPage, {
+                            currentRoute,
+                            setCurrentRoute,
+
+                            handleConfig,
+                        })}
                     </View>
                 )}
             </AnimatePresence>
@@ -137,15 +197,12 @@ const styles = StyleSheet.create({
         display: "flex",
         flexDirection: "column",
         justifyContent: "space-around",
-        // backgroundColor: "blue",
         height: "100%",
     },
     mapWrapper: {
         flex: 1,
         position: "relative",
         display: "flex",
-        // justifyContent: "center",
-        // alignItems: "center",
         overflow: "hidden",
         backgroundColor: "green",
     },
@@ -162,7 +219,7 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         alignItems: "center",
         height: "100%",
-        pointerEvents: "none"
+        pointerEvents: "none",
     },
     mapPointer: {
         position: "absolute",

@@ -1,7 +1,8 @@
 import { ApiRoute } from "@api-types"
-import * as Location from "expo-location"
-import { RefObject, useState, memo, useEffect, useCallback } from "react"
+import { RefObject, memo } from "react"
 import MapView, { LatLng, Marker, Polyline } from "react-native-maps"
+import CommunityIcon from "@expo/vector-icons/MaterialCommunityIcons"
+import { Config } from "../pages/Config"
 
 interface Props {
     // location: Location.LocationObject | null
@@ -9,6 +10,7 @@ interface Props {
     onRegionChange: (d: LatLng) => void
     currentRoute: ApiRoute | null
     maxHeight: number
+    config: Config
 }
 
 const initialLocation = {
@@ -20,7 +22,7 @@ const initialLocation = {
 
 let updateTimeout: any = null
 
-const Map = ({ mapRef, onRegionChange, currentRoute, maxHeight }: Props) => {
+const Map = ({ mapRef, onRegionChange, currentRoute, maxHeight, config }: Props) => {
     console.log("map")
 
     const handleChange = (e: LatLng) => {
@@ -46,15 +48,19 @@ const Map = ({ mapRef, onRegionChange, currentRoute, maxHeight }: Props) => {
                         title="Position"
                         description="Description"
                         onPress={() => alert("bolsonara")}
-                        pinColor="green"
-                        style={{ width: 13, height: 14 }}
-                    />
+                        // pinColor="#1D68FF"
+                        style={{ width: 20, height: 20 }}
+                    >
+                        <CommunityIcon name="checkbox-blank-circle" color={"#1853c9"}>
+                            {" "}
+                        </CommunityIcon>
+                    </Marker>
                 ))}
 
             {currentRoute && (
                 <Polyline
                     coordinates={currentRoute.path.map((path) => path.location)}
-                    strokeColor={"green"}
+                    strokeColor={"#1D68FF"}
                     strokeWidth={5}
                     // lineDashPattern={[-1]}
                 />
