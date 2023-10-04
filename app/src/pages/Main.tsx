@@ -128,7 +128,7 @@ function MainPage() {
         const newLocation = await handleLocation()
         if (!newLocation) return console.log("Sem location")
         if (!currentRoute) return console.log("Sem route")
-
+        console.log("Coloquei")
         handleAddPoint(newLocation.coords)
     }, [location, currentRoute])
 

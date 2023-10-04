@@ -22,7 +22,13 @@ const initialLocation = {
 
 let updateTimeout: any = null
 
-const Map = ({ mapRef, onRegionChange, currentRoute, maxHeight, config }: Props) => {
+const Map = ({
+    mapRef,
+    onRegionChange,
+    currentRoute,
+    maxHeight,
+    config,
+}: Props) => {
     console.log("map")
 
     const handleChange = (e: LatLng) => {
@@ -41,21 +47,29 @@ const Map = ({ mapRef, onRegionChange, currentRoute, maxHeight, config }: Props)
             loadingEnabled={true}
         >
             {currentRoute &&
-                currentRoute.points.map((points, index) => (
-                    <Marker
-                        key={index}
-                        coordinate={points}
-                        title="Position"
-                        description="Description"
-                        onPress={() => alert("bolsonara")}
-                        // pinColor="#1D68FF"
-                        style={{ width: 20, height: 20 }}
-                    >
-                        <CommunityIcon name="checkbox-blank-circle" color={"#1853c9"}>
-                            {" "}
-                        </CommunityIcon>
-                    </Marker>
-                ))}
+                currentRoute.points
+                    .slice(
+                        currentRoute.points.length - 3,
+                        currentRoute.points.length
+                    )
+                    .map((points, index) => (
+                        <Marker
+                            key={index}
+                            coordinate={points}
+                            title="Position"
+                            description="Description"
+                            onPress={() => alert("bolsonara")}
+                            // pinColor="#1D68FF"
+                            style={{ width: 20, height: 20 }}
+                        >
+                            <CommunityIcon
+                                name="checkbox-blank-circle"
+                                color={"#1853c9"}
+                            >
+                                {" "}
+                            </CommunityIcon>
+                        </Marker>
+                    ))}
 
             {currentRoute && (
                 <Polyline
