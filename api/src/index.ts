@@ -12,7 +12,7 @@ const fastify = Fastify({})
 
 fastify.get("/route", async () => {
     const routes = await database.route.findMany({ include: { points: true } })
-    console.log(routes)
+
     return {
         success: true,
         data: routes.map(parseRoutePath),
