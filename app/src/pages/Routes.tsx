@@ -6,6 +6,9 @@ import { ScrollView } from "moti"
 import { useEffect, useState, memo } from "react"
 import { StyleSheet, Text, TouchableNativeFeedback, View } from "react-native"
 import api from "../services/api"
+import { useDispatch, useSelector } from "react-redux"
+import { IRootState } from "../store"
+import { updateMainKey } from "../slices/main"
 
 dayjs.locale("pt-br")
 dayjs.extend(relativeTime)
@@ -24,7 +27,9 @@ const RouteItem = ({
     return (
         <TouchableNativeFeedback onPress={() => onPress(route)}>
             <View style={[styles.routeItemContainer, customStyle]}>
-                <Text style={[styles.text, styles.textTitle]}>Rota #{route.id}</Text>
+                <Text style={[styles.text, styles.textTitle]}>
+                    Rota #{route.id}
+                </Text>
 
                 <Text style={[styles.text, { opacity: 0.5 }]}>
                     Criada {dayjs(route.createdAt).from(Date.now())} atrás
@@ -35,14 +40,11 @@ const RouteItem = ({
     )
 }
 
-const RoutesPage_ = ({
-    currentRoute,
-    setCurrentRoute,
-}: {
-    currentRoute: ApiRoute | null
-    setCurrentRoute: (data: ApiRoute) => void
-}) => {
-    const [routes, setRoutes] = useState<ApiRoute[] | null>(null)
+const RoutesPage_ = () => {
+    // const [routes, setRoutes] = useState<ApiRoute[] | null>(null)
+    const routes = useSelector((state: IRootState) => state.main.routes)
+    const currentRoute = useSelector((state: IRootState) => state.main.currentRoute)
+    const dispatch = useDispatch()
 
     const handleRoutes = async () => {
         const response = await api.fechRoutes()
@@ -51,11 +53,12 @@ const RoutesPage_ = ({
             return
         }
         const orderedRoutes = response.data.sort((a, b) => a.id - b.id)
-        setRoutes(orderedRoutes)
+
+        dispatch(updateMainKey(["routes", orderedRoutes]))
     }
 
-    const handleRouteClick = (data: ApiRoute) => {
-        setCurrentRoute(data)
+    const handleRouteClick = (newCurrentRoute: ApiRoute) => {
+        dispatch(updateMainKey(["currentRoute", newCurrentRoute]))
         handleRoutes()
     }
 
@@ -114,7 +117,7 @@ const styles = StyleSheet.create({
         fontSize: 15,
     },
     textTitle: {
-        fontWeight: "600"
+        fontWeight: "600",
     },
     routeItemContainer: {
         position: "relative",

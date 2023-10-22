@@ -1,8 +1,7 @@
 import CommunityIcon from "@expo/vector-icons/MaterialCommunityIcons"
 import Icon from "@expo/vector-icons/MaterialIcons"
 import { ComponentProps } from "react"
-import { TouchableHighlight, View, Text, StyleSheet } from "react-native"
-import { IconProps } from "react-toastify"
+import { StyleSheet, Text, TouchableHighlight, View } from "react-native"
 
 interface Props {
     icon?: ComponentProps<typeof Icon>["name"]

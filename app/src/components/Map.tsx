@@ -1,16 +1,14 @@
 import { ApiRoute } from "@api-types"
-import { RefObject, memo } from "react"
-import MapView, { LatLng, Marker, Polyline } from "react-native-maps"
 import CommunityIcon from "@expo/vector-icons/MaterialCommunityIcons"
-import { Config } from "../pages/Config"
+import { RefObject, memo, useEffect, useRef } from "react"
+import MapView, { LatLng, Marker, Polyline } from "react-native-maps"
+import { useDispatch } from "react-redux"
+import { updateMainKey } from "../slices/main"
 
 interface Props {
-    // location: Location.LocationObject | null
-    mapRef: RefObject<MapView>
     onRegionChange: (d: LatLng) => void
     currentRoute: ApiRoute | null
     maxHeight: number
-    config: Config
 }
 
 const initialLocation = {
@@ -22,23 +20,22 @@ const initialLocation = {
 
 let updateTimeout: any = null
 
-const Map = ({
-    mapRef,
-    onRegionChange,
-    currentRoute,
-    maxHeight,
-    config,
-}: Props) => {
-    console.log("map")
+const Map = ({ onRegionChange, currentRoute, maxHeight }: Props) => {
+    const ref = useRef<MapView>(null)
+    const dispatch = useDispatch()
 
     const handleChange = (e: LatLng) => {
         clearTimeout(updateTimeout)
         updateTimeout = setTimeout(() => onRegionChange(e), 300)
     }
 
+    useEffect(() => {
+        dispatch(updateMainKey(["mapRef", ref]))
+    }, [ref.current])
+
     return (
         <MapView
-            ref={mapRef}
+            ref={ref}
             style={{ maxHeight, height: maxHeight }}
             zoomEnabled
             initialRegion={initialLocation}

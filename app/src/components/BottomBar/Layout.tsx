@@ -1,71 +1,100 @@
-import { LayoutChangeEvent, StyleSheet, View, Text } from "react-native"
-import Button from "./Button"
-import { memo } from "react"
 import { ApiRoute } from "@api-types"
+import { memo } from "react"
+import { LayoutChangeEvent, StyleSheet, Text, View } from "react-native"
+import { useDispatch, useSelector } from "react-redux"
+import ConfigPage from "../../pages/Config"
+import RoutesPage from "../../pages/Routes"
+import { setSubpage } from "../../slices/main"
+import Button from "./Button"
+import { ThunkDispatch } from "@reduxjs/toolkit"
+import mainThunks from "../../slices/main/thunks"
+import { IRootState } from "../../store"
 
 interface Props {
-    handleRoutesPage: (target: string) => void
-    handleAddPoint: () => void
-    handleGenerateRote: () => void
-    handleResetPoints: () => void
     onLayout: (e: LayoutChangeEvent) => void
     currentRoute: ApiRoute | null
 }
 
-const BottomBarLayout = memo(
-    ({
-        handleRoutesPage,
-        handleAddPoint,
-        handleResetPoints,
-        handleGenerateRote,
-        onLayout,
-        currentRoute,
-    }: Props) => {
-        console.log("bottombar re render")
-        return (
-            <View style={styles.columnContainer} onLayout={onLayout}>
-                {!currentRoute && (
-                    <Text style={styles.text}>
-                        {!currentRoute && "Nenhuma rota selecionada"}
-                    </Text>
-                )}
+const BottomBarLayout = ({ onLayout, currentRoute }: Props) => {
+    const dispatch = useDispatch<ThunkDispatch<any, any, any>>()
+    const lookingLocation = useSelector(
+        (state: IRootState) => state.main.lookingLocation
+    )
+    const subpage = useSelector((state: IRootState) => state.main.subpage)
 
-                {currentRoute && (
-                    <Text style={styles.text}>
-                        {`Rota #${currentRoute.id}. ${currentRoute.points.length} pontos. ${currentRoute.path.length} paths`}
-                    </Text>
-                )}
-                <View style={styles.rowContainer}>
-                    <Button
-                        onPress={() => handleRoutesPage("routes")}
-                        text="Rotas"
-                        communityIcon="routes"
-                    />
-                    <Button
-                        onPress={handleGenerateRote}
-                        text="Processar"
-                        icon={"account-tree"}
-                    />
-                    <Button
-                        onPress={handleAddPoint}
-                        text="Adicionar ponto"
-                        icon="add"
-                    />
-                    <Button
-                        onPress={handleResetPoints}
-                        text="Apagar"
-                        icon="delete"
-                    />
-                    <Button
-                        onPress={() => handleRoutesPage("config")}
-                        text="Configurações"
-                        icon="settings"
-                    />
-                </View>
-            </View>
+    const handlePageChange = (target: JSX.Element | null) => {
+        if (subpage?.key === target?.key) return dispatch(setSubpage(null))
+        dispatch(setSubpage(target))
+    }
+
+    const handleResetPoints = () => {
+        if (!currentRoute) return alert("Sem rota")
+        dispatch(mainThunks.deleteRoutePoints(currentRoute.id.toString()))
+    }
+
+    const handleGenerateRote = () => {
+        if (!currentRoute) return alert("Sem rota")
+        dispatch(mainThunks.generateRoute(currentRoute.id.toString()))
+    }
+
+    const handleAddPoint = () => {
+        if (!currentRoute) return alert("Sem rota")
+        if (!lookingLocation) return alert("Looking location null")
+        dispatch(
+            mainThunks.putPointInRoute([
+                currentRoute.id.toString(),
+                lookingLocation,
+            ])
         )
     }
-)
+
+    return (
+        <View style={styles.columnContainer} onLayout={onLayout}>
+            {!currentRoute && (
+                <Text style={styles.text}>
+                    {!currentRoute && "Nenhuma rota selecionada"}
+                </Text>
+            )}
+
+            {currentRoute && (
+                <Text style={styles.text}>
+                    {`Rota #${currentRoute.id}. ${currentRoute.points.length} pontos. ${currentRoute.path.length} paths`}
+                </Text>
+            )}
+            <View style={styles.rowContainer}>
+                <Button
+                    onPress={() =>
+                        handlePageChange(<RoutesPage key={"routes'"} />)
+                    }
+                    text="Rotas"
+                    communityIcon="routes"
+                />
+                <Button
+                    onPress={handleGenerateRote}
+                    text="Processar"
+                    icon={"account-tree"}
+                />
+                <Button
+                    onPress={handleAddPoint}
+                    text="Adicionar ponto"
+                    icon="add"
+                />
+                <Button
+                    onPress={handleResetPoints}
+                    text="Apagar"
+                    icon="delete"
+                />
+                <Button
+                    onPress={() =>
+                        handlePageChange(<ConfigPage key={"config"} />)
+                    }
+                    text="Configurações"
+                    icon="settings"
+                />
+            </View>
+        </View>
+    )
+}
 
 const styles = StyleSheet.create({
     columnContainer: {
@@ -91,4 +120,4 @@ const styles = StyleSheet.create({
     },
 })
 
-export default BottomBarLayout
+export default memo(BottomBarLayout)

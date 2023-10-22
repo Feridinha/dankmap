@@ -1,6 +1,6 @@
+import { ApiRoute } from "@api-types"
 import axios, { AxiosError } from "axios"
 import { LatLng } from "react-native-maps"
-import { ApiRouteZodSchema, ApiRoute } from "@api-types"
 
 const http = axios.create({ baseURL: process.env.EXPO_PUBLIC_API_URL })
 
@@ -20,7 +20,7 @@ const handleError = (error: AxiosError) => {
     return error.response?.data
 }
 
-const fechRoute = async (routeId: number): Promise<ApiResponse<ApiRoute>> => {
+const fechRoute = async (routeId: string): Promise<ApiResponse<ApiRoute>> => {
     const response = await http.get(`/route/${routeId}`)
     return response.data as ApiResponse<ApiRoute>
 }
@@ -31,14 +31,14 @@ const fechRoutes = async (): Promise<ApiResponse<ApiRoute[]>> => {
 }
 
 const deleteRoutePoints = async (
-    routeId: number
+    routeId: string
 ): Promise<ApiResponse<ApiRoute>> => {
     const response = await http.delete(`/route/${routeId}/point`)
     return response.data as ApiResponse<ApiRoute>
 }
 
 const putPointInRoute = async (
-    routeId: number,
+    routeId: string,
     { latitude, longitude }: LatLng
 ): Promise<ApiResponse<ApiRoute>> => {
     const response: any = await http
@@ -53,7 +53,7 @@ const putPointInRoute = async (
 }
 
 const getRoutePath = async (
-    routeId: number
+    routeId: string
 ): Promise<ApiResponse<ApiRoute>> => {
     const response: any = await http
         .get(`/route/${routeId}/path`)
@@ -68,7 +68,7 @@ const api = {
     putPointInRoute,
     fechRoute,
     getRoutePath,
-    fechRoutes
+    fechRoutes,
 }
 
 export default api

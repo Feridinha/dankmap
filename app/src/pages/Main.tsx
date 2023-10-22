@@ -1,53 +1,34 @@
-import { ApiRoute } from "@api-types"
+import { ThunkDispatch } from "@reduxjs/toolkit"
 import * as Location from "expo-location"
 import { StatusBar } from "expo-status-bar"
 import { AnimatePresence } from "moti"
-import {
-    useEffect,
-    useRef,
-    useState,
-    useCallback,
-    ReactNode,
-    cloneElement,
-} from "react"
-import {
-    LayoutChangeEvent,
-    ScrollView,
-    StyleSheet,
-    View,
-    Image,
-} from "react-native"
-import MapView, { LatLng } from "react-native-maps"
+import { cloneElement, useCallback, useEffect, useState } from "react"
+import { Image, LayoutChangeEvent, StyleSheet, View } from "react-native"
+import { LatLng } from "react-native-maps"
+import { useDispatch, useSelector } from "react-redux"
 import BottomBar from "../components/BottomBar"
 import Map from "../components/Map"
-import api from "../services/api"
-import RoutesPage from "./Routes"
-import ConfigPage, { Config } from "./Config"
-
-type Nullable<T> = T | null
+import { updateMainKey } from "../slices/main"
+import mainThunks from "../slices/main/thunks"
+import { IRootState } from "../store"
 
 let placePointsInverval: any = null
 
 function MainPage() {
-    const [location, setLocation] =
-        useState<Nullable<Location.LocationObject>>(null)
-    const [lookingLocation, setLookingLocation] =
-        useState<Nullable<LatLng>>(null)
-
-    const mapRef = useRef<MapView>(null)
-    const [currentRoute, setCurrentRoute] = useState<ApiRoute | null>(null)
     const [maxHeight, setMaxHeight] = useState<number>(20)
     const [pageHeight, setPageHeight] = useState<number>(0)
-    const [currentSubPage, setSubpage] = useState<JSX.Element | null>(null)
-    const [config, setConfig] = useState<Config>({ auto_place_points: false })
     const [bottomBarHeight, setBottomHeight] = useState(0)
+    const config = useSelector((state: IRootState) => state.config)
+    const { subpage, currentRoute, location, lookingLocation, mapRef } =
+        useSelector((state: IRootState) => state.main)
+    const dispatch = useDispatch<ThunkDispatch<any, any, any>>()
 
     const handleLocation = async () => {
         const result = await Location.requestForegroundPermissionsAsync()
         if (result.status !== "granted") return alert("Permissão negada!")
 
         let location = await Location.getCurrentPositionAsync({ accuracy: 6 })
-        setLocation(location)
+        dispatch(updateMainKey(["location", location]))
         return location
     }
 
@@ -57,28 +38,11 @@ function MainPage() {
 
     useEffect(handleStart, [])
 
-    const handleAddPoint = async (targetLocation: Nullable<LatLng>) => {
-        if (!targetLocation) return alert("Localização não disponível")
-        if (!currentRoute) return alert("Nenhuma rota selecionada")
-        const response = await api.putPointInRoute(
-            currentRoute.id,
-            targetLocation
-        )
-        if (!response.success) return alert(response.message)
-        setCurrentRoute(response.data)
-    }
-
     const handleRegionChange = useCallback(
-        (region: LatLng) => setLookingLocation(region),
-        [setLookingLocation]
+        (region: LatLng) =>
+            dispatch(updateMainKey(["lookingLocation", region])),
+        [dispatch]
     )
-
-    const handleResetPoints = useCallback(async () => {
-        if (!currentRoute) return alert("Nenhuma rota selecionada")
-        const response = await api.deleteRoutePoints(currentRoute.id)
-        if (!response.success) return alert(response.message)
-        setCurrentRoute(response.data)
-    }, [setCurrentRoute, currentRoute])
 
     const getHeight = (e: LayoutChangeEvent) => e.nativeEvent.layout.height
 
@@ -91,52 +55,24 @@ function MainPage() {
         [setMaxHeight, pageHeight]
     )
 
-    const handleGenerateRote = useCallback(async () => {
-        if (!currentRoute) return alert("Escola uma rota")
-        const response = await api.getRoutePath(currentRoute.id)
-        if (!response.success) return alert(response.message)
-        setCurrentRoute(response.data)
-    }, [setCurrentRoute, currentRoute])
-
-    const handleConfig = (newConfig: Config) => {
-        setConfig(newConfig)
-    }
-
-    const handleRoutesPage = (target?: string) => {
-        let newValue: ReactNode = null
-        const props = { currentRoute, setCurrentRoute }
-
-        switch (target) {
-            case "routes":
-                newValue = <RoutesPage key={"routes"} {...props} />
-                break
-            case "config":
-                newValue = (
-                    <ConfigPage
-                        handleConfig={handleConfig}
-                        key={"config"}
-                        {...props}
-                    />
-                )
-                break
-        }
-        if (newValue?.key === currentSubPage?.key) return setSubpage(null)
-        setSubpage(newValue)
-    }
-
     const handleAutoPlace = useCallback(async () => {
         const newLocation = await handleLocation()
         if (!newLocation) return console.log("Sem location")
         if (!currentRoute) return console.log("Sem route")
-        console.log("Coloquei")
-        handleAddPoint(newLocation.coords)
+
+        dispatch(
+            mainThunks.putPointInRoute([
+                currentRoute.id.toString(),
+                newLocation.coords,
+            ])
+        )
     }, [location, currentRoute])
 
     useEffect(() => {
         clearInterval(placePointsInverval)
-        if (!config.auto_place_points) return
+        if (!config.autoPlacePoints) return
         placePointsInverval = setInterval(handleAutoPlace, 1000)
-    }, [config.auto_place_points, handleAutoPlace])
+    }, [config.autoPlacePoints, handleAutoPlace])
 
     return (
         <View
@@ -145,11 +81,9 @@ function MainPage() {
         >
             <View style={{ ...styles.mapWrapper, maxHeight }}>
                 <Map
-                    mapRef={mapRef}
                     onRegionChange={handleRegionChange}
                     currentRoute={currentRoute}
                     maxHeight={maxHeight}
-                    config={config}
                 />
                 <View style={styles.mapPointWrapper}>
                     <Image
@@ -160,30 +94,18 @@ function MainPage() {
                     />
                 </View>
             </View>
-            <BottomBar
-                handleRoutesPage={handleRoutesPage}
-                handleAddPoint={() => handleAddPoint(lookingLocation)}
-                handleResetPoints={handleResetPoints}
-                handleGenerateRote={handleGenerateRote}
-                onLayout={handleMapHeight}
-                currentRoute={currentRoute}
-            />
+            <BottomBar onLayout={handleMapHeight} currentRoute={currentRoute} />
             <StatusBar style="auto" />
             <AnimatePresence exitBeforeEnter>
-                {currentSubPage && (
+                {subpage && (
                     <View
                         style={{
                             ...styles.subpageContainer,
                             bottom: bottomBarHeight,
                         }}
-                        key={currentSubPage.key}
+                        key={subpage.key}
                     >
-                        {cloneElement(currentSubPage, {
-                            currentRoute,
-                            setCurrentRoute,
-
-                            handleConfig,
-                        })}
+                        {cloneElement(subpage)}
                     </View>
                 )}
             </AnimatePresence>

@@ -1,26 +1,18 @@
-import { View, Text, StyleSheet } from "react-native"
-import { ScrollView as MotiView } from "moti"
 import Checkbox from "expo-checkbox"
-import { useState } from "react"
+import { ScrollView as MotiView } from "moti"
+import { StyleSheet, Text, View } from "react-native"
+import { useDispatch, useSelector } from "react-redux"
+import { updateKey } from "../slices/config"
+import { IRootState } from "../store"
 
-export interface Config {
-    auto_place_points: boolean
-}
+const ConfigPage = () => {
+    const { autoPlacePoints } = useSelector((state: IRootState) => state.config)
 
-interface Props {
-    handleConfig: (confi: Config) => void
-}
-
-const ConfigPage = (props: Props) => {
-    // const [config, setConfig] = useState<Config>({ auto_place_points: false })
-    const [isChecked, setIsChecked] = useState<boolean>(false)
+    const dispatch = useDispatch()
 
     const handleChange = (newValue: boolean) => {
-        setIsChecked(newValue)
-        props.handleConfig({ auto_place_points: newValue })
+        dispatch(updateKey(["autoPlacePoints", newValue]))
     }
-
-    // const isChecked = config["auto_place_points"]
 
     return (
         <MotiView
@@ -34,9 +26,9 @@ const ConfigPage = (props: Props) => {
             <View style={styles.rowContainer}>
                 <Checkbox
                     style={styles.checkbox}
-                    value={isChecked}
+                    value={autoPlacePoints}
                     onValueChange={handleChange}
-                    color={isChecked ? "#4630EB" : undefined}
+                    color={autoPlacePoints ? "#4630EB" : undefined}
                 />
                 <Text style={styles.text}>
                     Adicionar pontos automaticamente
