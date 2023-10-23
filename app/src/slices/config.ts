@@ -15,7 +15,7 @@ const configSlice = createSlice({
     initialState,
     name: "config",
     reducers: {
-        updateKey: (
+        updateConfigKey: (
             state,
             action: PayloadAction<
                 UpdatePayloadType<IConfigState, keyof IConfigState>
@@ -30,7 +30,7 @@ const configSlice = createSlice({
     },
 })
 
-export const { updateKey, setConfig } = configSlice.actions
+export const { updateConfigKey, setConfig } = configSlice.actions
 
 const configReducer = configSlice.reducer
 

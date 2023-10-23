@@ -64,7 +64,7 @@ const BottomBarLayout = ({ onLayout, currentRoute }: Props) => {
             <View style={styles.rowContainer}>
                 <Button
                     onPress={() =>
-                        handlePageChange(<RoutesPage key={"routes'"} />)
+                        handlePageChange(<RoutesPage key={"routes"} />)
                     }
                     text="Rotas"
                     communityIcon="routes"

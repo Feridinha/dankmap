@@ -32,11 +32,9 @@ function MainPage() {
         return location
     }
 
-    const handleStart = () => {
+    useEffect(() => {
         handleLocation()
-    }
-
-    useEffect(handleStart, [])
+    }, [])
 
     const handleRegionChange = useCallback(
         (region: LatLng) =>
@@ -71,8 +69,8 @@ function MainPage() {
     useEffect(() => {
         clearInterval(placePointsInverval)
         if (!config.autoPlacePoints) return
-        placePointsInverval = setInterval(handleAutoPlace, 1000)
-    }, [config.autoPlacePoints, handleAutoPlace])
+        placePointsInverval = setInterval(handleAutoPlace, config.autoPlaceIntervalMs)
+    }, [config.autoPlacePoints, config.autoPlaceIntervalMs, handleAutoPlace])
 
     return (
         <View
@@ -93,7 +91,7 @@ function MainPage() {
                         height={12}
                     />
                 </View>
-            </View>
+            </View> 
             <BottomBar onLayout={handleMapHeight} currentRoute={currentRoute} />
             <StatusBar style="auto" />
             <AnimatePresence exitBeforeEnter>

@@ -1,6 +1,6 @@
 import { ApiRoute } from "@api-types"
 import CommunityIcon from "@expo/vector-icons/MaterialCommunityIcons"
-import { RefObject, memo, useEffect, useRef } from "react"
+import { memo, useEffect, useRef } from "react"
 import MapView, { LatLng, Marker, Polyline } from "react-native-maps"
 import { useDispatch } from "react-redux"
 import { updateMainKey } from "../slices/main"
@@ -32,6 +32,7 @@ const Map = ({ onRegionChange, currentRoute, maxHeight }: Props) => {
     useEffect(() => {
         dispatch(updateMainKey(["mapRef", ref]))
     }, [ref.current])
+
 
     return (
         <MapView
@@ -80,4 +81,4 @@ const Map = ({ onRegionChange, currentRoute, maxHeight }: Props) => {
     )
 }
 
-export default memo(Map)
+export default Map
