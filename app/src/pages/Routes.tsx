@@ -3,12 +3,12 @@ import dayjs from "dayjs"
 import "dayjs/locale/pt-br"
 import relativeTime from "dayjs/plugin/relativeTime"
 import { ScrollView } from "moti"
-import { useEffect, useState, memo } from "react"
+import { memo, useEffect } from "react"
 import { StyleSheet, Text, TouchableNativeFeedback, View } from "react-native"
-import api from "../services/api"
 import { useDispatch, useSelector } from "react-redux"
-import { IRootState } from "../store"
+import api from "../services/api"
 import { updateMainKey } from "../slices/main"
+import { IRootState } from "../store"
 
 dayjs.locale("pt-br")
 dayjs.extend(relativeTime)
@@ -28,7 +28,7 @@ const RouteItem = ({
         <TouchableNativeFeedback onPress={() => onPress(route)}>
             <View style={[styles.routeItemContainer, customStyle]}>
                 <Text style={[styles.text, styles.textTitle]}>
-                    Rota #{route.id}
+                    Rota #{route.id}; {route.points.length}/{route.path.length}
                 </Text>
 
                 <Text style={[styles.text, { opacity: 0.5 }]}>

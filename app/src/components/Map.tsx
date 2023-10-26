@@ -33,7 +33,6 @@ const Map = ({ onRegionChange, currentRoute, maxHeight }: Props) => {
         dispatch(updateMainKey(["mapRef", ref]))
     }, [ref.current])
 
-
     return (
         <MapView
             ref={ref}
@@ -44,30 +43,39 @@ const Map = ({ onRegionChange, currentRoute, maxHeight }: Props) => {
             showsUserLocation={true}
             loadingEnabled={true}
         >
-            {currentRoute &&
-                currentRoute.points
-                    .slice(
-                        currentRoute.points.length - 3,
-                        currentRoute.points.length
-                    )
-                    .map((points, index) => (
-                        <Marker
-                            key={index}
-                            coordinate={points}
-                            title="Position"
-                            description="Description"
-                            onPress={() => alert("bolsonara")}
-                            // pinColor="#1D68FF"
-                            style={{ width: 20, height: 20 }}
-                        >
-                            <CommunityIcon
-                                name="checkbox-blank-circle"
-                                color={"#1853c9"}
-                            >
-                                {" "}
-                            </CommunityIcon>
-                        </Marker>
-                    ))}
+            {currentRoute && currentRoute?.points.length > 0 && (
+                <Marker
+                    key={"start"}
+                    coordinate={currentRoute.points[0]}
+                    title="Position"
+                    description="Description"
+                    onPress={() => alert("bolsonara")}
+                >
+                    <CommunityIcon
+                        name="checkbox-blank-circle"
+                        color={"#1853c9"}
+                    >
+                        {" "}
+                    </CommunityIcon>
+                </Marker>
+            )}
+
+            {currentRoute && currentRoute?.points.length > 1 && (
+                <Marker
+                    key={"end"}
+                    coordinate={currentRoute.points.at(-1)!}
+                    title="Position"
+                    description="Description"
+                    onPress={() => alert("bolsonara")}
+                >
+                    <CommunityIcon
+                        name="checkbox-blank-circle"
+                        color={"#1853c9"}
+                    >
+                        {" "}
+                    </CommunityIcon>
+                </Marker>
+            )}
 
             {currentRoute && (
                 <Polyline

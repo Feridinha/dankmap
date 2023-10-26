@@ -11,6 +11,7 @@ import Map from "../components/Map"
 import { updateMainKey } from "../slices/main"
 import mainThunks from "../slices/main/thunks"
 import { IRootState } from "../store"
+import { requestPermissions } from "../../tasks"
 
 let placePointsInverval: any = null
 
@@ -19,13 +20,13 @@ function MainPage() {
     const [pageHeight, setPageHeight] = useState<number>(0)
     const [bottomBarHeight, setBottomHeight] = useState(0)
     const config = useSelector((state: IRootState) => state.config)
-    const { subpage, currentRoute, location, lookingLocation, mapRef } =
+    const { subpage, currentRoute, location, routes } =
         useSelector((state: IRootState) => state.main)
     const dispatch = useDispatch<ThunkDispatch<any, any, any>>()
 
     const handleLocation = async () => {
-        const result = await Location.requestForegroundPermissionsAsync()
-        if (result.status !== "granted") return alert("Permissão negada!")
+        const gpsAllowed = await requestPermissions()
+        if(!gpsAllowed) return
 
         let location = await Location.getCurrentPositionAsync({ accuracy: 6 })
         dispatch(updateMainKey(["location", location]))
@@ -34,6 +35,7 @@ function MainPage() {
 
     useEffect(() => {
         handleLocation()
+        if(routes.length === 0) dispatch(mainThunks.fetchRoutes())
     }, [])
 
     const handleRegionChange = useCallback(
@@ -69,7 +71,10 @@ function MainPage() {
     useEffect(() => {
         clearInterval(placePointsInverval)
         if (!config.autoPlacePoints) return
-        placePointsInverval = setInterval(handleAutoPlace, config.autoPlaceIntervalMs)
+        placePointsInverval = setInterval(
+            handleAutoPlace,
+            config.autoPlaceIntervalMs
+        )
     }, [config.autoPlacePoints, config.autoPlaceIntervalMs, handleAutoPlace])
 
     return (
@@ -91,7 +96,7 @@ function MainPage() {
                         height={12}
                     />
                 </View>
-            </View> 
+            </View>
             <BottomBar onLayout={handleMapHeight} currentRoute={currentRoute} />
             <StatusBar style="auto" />
             <AnimatePresence exitBeforeEnter>

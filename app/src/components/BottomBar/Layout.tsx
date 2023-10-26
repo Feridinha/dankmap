@@ -9,6 +9,7 @@ import Button from "./Button"
 import { ThunkDispatch } from "@reduxjs/toolkit"
 import mainThunks from "../../slices/main/thunks"
 import { IRootState } from "../../store"
+import PointsPage from "../../pages/Points"
 
 interface Props {
     onLayout: (e: LayoutChangeEvent) => void
@@ -69,21 +70,28 @@ const BottomBarLayout = ({ onLayout, currentRoute }: Props) => {
                     text="Rotas"
                     communityIcon="routes"
                 />
-                <Button
+                {/* <Button
                     onPress={handleGenerateRote}
                     text="Processar"
                     icon={"account-tree"}
-                />
+                /> */}
                 <Button
                     onPress={handleAddPoint}
                     text="Adicionar ponto"
                     icon="add"
                 />
                 <Button
+                    text="Pontos"
+                    icon="location-pin"
+                    onPress={() =>
+                        handlePageChange(<PointsPage key={"points"} />)
+                    }
+                />
+                {/* <Button
                     onPress={handleResetPoints}
                     text="Apagar"
                     icon="delete"
-                />
+                /> */}
                 <Button
                     onPress={() =>
                         handlePageChange(<ConfigPage key={"config"} />)
